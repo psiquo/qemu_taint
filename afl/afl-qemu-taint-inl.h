@@ -404,14 +404,35 @@ void TAINT_func_end(void) {
     if (len > MAX_FILE)
       len = MAX_FILE;
     
+    char *tracefile_name = NULL;
+    FILE *tracefile = NULL;
+
+    if((tracefile_name = getenv("AFL_TAINT_FILE")) != NULL) {
+	    tracefile = fopen(tracefile_name,"w");
+	    fprintf(tracefile,"");
+	    fclose(tracefile);
+	    tracefile = fopen(tracefile_name,"a");
+    }
+
     fprintf(stderr, "[TAINT] MAP (length: %ld, shown: %d) ('!' = touched, '.' = untouched)\n", highest_offset, len);
     for (i = 0; i < len; i++) {
       if (i % 64 == 0) fprintf(stderr, "[ ");
-      if (TAINT_var_filemap[i])
+      if (TAINT_var_filemap[i]) {
         fprintf(stderr, "!");
-      else
+	if(tracefile != NULL){
+		fprintf(tracefile,"%d ",i);
+	}
+      } else
         fprintf(stderr, ".");
-      if (i % 64 == 63) fprintf(stderr, " ]\n");
+      if (i % 64 == 63){
+	  fprintf(stderr, " ]\n");
+
+	  if(tracefile != NULL)
+		fprintf(tracefile,"\n");
+	  	fflush(tracefile);
+		fclose(tracefile);
+      }
+
     }
     
     j = highest_offset - len;

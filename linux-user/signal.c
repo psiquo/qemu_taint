@@ -584,6 +584,7 @@ static void QEMU_NORETURN dump_core_and_abort(int target_sig)
     if (core_dumped) {
         /* we already dumped the core of target process, we don't want
          * a coredump of qemu itself */
+	TAINT_func_end();
         struct rlimit nodump;
         getrlimit(RLIMIT_CORE, &nodump);
         nodump.rlim_cur=0;
